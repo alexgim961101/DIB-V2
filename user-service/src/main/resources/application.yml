@@ -1,0 +1,39 @@
+server:
+  port: 0
+
+eureka:
+  instance:
+    instance-id: ${spring.cloud.client.hostname}:${spring.application.instance_id:${random.value}}
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://127.0.0.1:8761/eureka
+
+spring:
+  application:
+    name: user-service
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/msa?serverTimezone=Asia/Seoul
+    username: root
+    password: 3778
+
+  jpa:
+    database: mysql
+    hibernate:
+      ddl-auto: create                          # create(??? ??? ?? ??), update(?? ???? ??), none()
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+
+token:
+  expiration_time: 86400000
+  secret: user_token
+
+logging:
+  level:
+    com.example.userservice: DEBUG
