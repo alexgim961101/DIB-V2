@@ -18,7 +18,7 @@ class ChatRoomRepoTest {
     @DisplayName(value = "채팅방 생성 테스트")
     void createChatRoom(){
         // given
-        ChatRoom chatRoom = ChatRoom.createChatRoom(1L, 10L);
+        ChatRoom chatRoom = ChatRoom.createChatRoom(1L, "chatRoom",10L);
 
         // when
         Mono<ChatRoom> monoChatRoom = chatRoomRepo.save(chatRoom);

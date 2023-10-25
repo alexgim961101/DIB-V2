@@ -17,9 +17,11 @@ import java.util.Set;
 public class ChatRoom {
     @Id
     private String roomId;
-    // 연결된 아이디
+    // 연결된 게시글 아이디
     private Long articleId;
-    // 채팅방에 입장한 사람 수
+    // 채팅방 이름
+    private String chatRoomName;
+    // 채팅방에 입장한 사람들
     private Set<Long> participantIds;
     // 채팅방 생성일
     private LocalDateTime createdAt;
@@ -27,24 +29,28 @@ public class ChatRoom {
     private LocalDateTime updatedAt;
 
     @Builder
-    public ChatRoom(String roomId, Long articleId, Set<Long> participantIds, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public ChatRoom(String roomId, Long articleId, String chatRoomName, Set<Long> participantIds, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.roomId = roomId;
         this.articleId = articleId;
+        this.chatRoomName = chatRoomName;
         this.participantIds = participantIds;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
 
+
     //== 생성 메서드 ==//
-    public static ChatRoom createChatRoom(Long articleId, Long participantId) {
+    public static ChatRoom createChatRoom(Long articleId, String chatRoomName, Long participantId) {
         HashSet<Long> set = new HashSet<>();
         set.add(participantId);
         return ChatRoom.builder()
                 .articleId(articleId)
+                .chatRoomName(chatRoomName)
                 .participantIds(set)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
 
     }
+
 }

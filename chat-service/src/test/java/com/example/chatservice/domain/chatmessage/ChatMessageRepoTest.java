@@ -18,7 +18,7 @@ class ChatMessageRepoTest {
     @DisplayName(value = "저장 테스트")
     void saveChatMessage() {
         // given
-        ChatMessage chatMassage = ChatMessage.createChatMassage("1", "hello", "alex");
+        ChatMessage chatMassage = ChatMessage.createChatMassage("1", "hello", 1L);
 
         // when
         Mono<ChatMessage> monoChatMessage = chatMessageRepo.save(chatMassage);
