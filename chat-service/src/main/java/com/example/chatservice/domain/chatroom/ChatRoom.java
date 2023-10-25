@@ -21,6 +21,8 @@ public class ChatRoom {
     private Long articleId;
     // 채팅방 이름
     private String chatRoomName;
+    // 마지막 채팅 내용
+    private String lastContent;
     // 채팅방에 입장한 사람들
     private Set<Long> participantIds;
     // 채팅방 생성일
@@ -29,10 +31,11 @@ public class ChatRoom {
     private LocalDateTime updatedAt;
 
     @Builder
-    public ChatRoom(String roomId, Long articleId, String chatRoomName, Set<Long> participantIds, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public ChatRoom(String roomId, Long articleId, String chatRoomName, String lastContent, Set<Long> participantIds, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.roomId = roomId;
         this.articleId = articleId;
         this.chatRoomName = chatRoomName;
+        this.lastContent = lastContent;
         this.participantIds = participantIds;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
@@ -50,7 +53,6 @@ public class ChatRoom {
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
-
     }
 
 }

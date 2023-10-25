@@ -4,6 +4,7 @@ import com.example.chatservice.domain.chatroom.ChatRoom;
 import com.example.chatservice.web.dto.ChatMessageDto;
 import com.example.chatservice.web.dto.ChatRoomDto;
 import com.example.chatservice.web.dto.GetChatRoomDto;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 public interface ChatService {
@@ -13,7 +14,13 @@ public interface ChatService {
      *
      * 채팅방 생성시 본인은 무조건 채팅방에 속함
      * */
-    Mono<ChatRoomDto> createChatRoom(Long userId, ChatRoomDto chatRoomDto);
+    Mono<ChatRoom> createChatRoom(Long userId, ChatRoomDto chatRoomDto);
+
+    /**
+     * 자신이 속한 채팅방 리스트 불러오기
+     * */
+    Flux<ChatRoom> getChatRoomList(Long userId);
+
 
     /**
      * 기존 채팅방 불러오기

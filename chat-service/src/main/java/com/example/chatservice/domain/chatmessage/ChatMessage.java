@@ -51,7 +51,7 @@ public class ChatMessage {
     public static ChatMessage createChatMassage(String chatRoomId, Long senderId, Type type) {
         String content = "";
         if(type == Type.START) content = senderId + "님이 입장하셨습니다";
-        else content = senderId + "님이 퇴장하셨습니다";
+        else if(type == Type.END) content = senderId + "님이 퇴장하셨습니다";
 
         return ChatMessage.builder()
                 .chatRoomId(chatRoomId)

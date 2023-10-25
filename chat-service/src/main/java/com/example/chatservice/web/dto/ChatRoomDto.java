@@ -10,29 +10,27 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 public class ChatRoomDto {
-    private String roomId;
     private Long articleId;
     private String chatRoomName;
-    private Integer peopleNum;
-    private LocalDateTime updatedAt;
 
     @Builder
-    public ChatRoomDto(String roomId, Long articleId, String chatRoomName, Integer peopleNum, LocalDateTime updatedAt) {
-        this.roomId = roomId;
+    private ChatRoomDto(Long articleId, String chatRoomName) {
         this.articleId = articleId;
         this.chatRoomName = chatRoomName;
-        this.peopleNum = peopleNum;
-        this.updatedAt = updatedAt;
     }
 
     //== 생성 메서드 ==//
     public static ChatRoomDto fromEntity(ChatRoom chatRoom) {
         return ChatRoomDto.builder()
-                .roomId(chatRoom.getRoomId())
                 .articleId(chatRoom.getArticleId())
                 .chatRoomName(chatRoom.getChatRoomName())
-                .peopleNum(chatRoom.getParticipantIds().size())
-                .updatedAt(chatRoom.getUpdatedAt())
+                .build();
+    }
+
+    public static ChatRoomDto createChatRoomDto(Long articleId, String chatRoomName) {
+        return ChatRoomDto.builder()
+                .articleId(articleId)
+                .chatRoomName(chatRoomName)
                 .build();
     }
 

@@ -8,5 +8,5 @@ public interface ChatMessageRepo extends ReactiveMongoRepository<ChatMessage, St
     // @Tailable  // 커서를 안닫고 계속 유지 -> 한번 해당 명령어가 실행되면 계속 데이터를 읽음
 //    @Query("{sender: ?0, receiver: ?1}")
 //    Flux<ChatMessage> mFindBySender(String sender, String receiver);
-    Flux<ChatMessage> findAllByCharRoomId(String chatRoomId);
+    Flux<ChatMessage> findAllByChatRoomId(String chatRoomId);
 }

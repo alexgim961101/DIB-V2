@@ -35,13 +35,21 @@ public class ChatServiceImpl implements ChatService{
     private final ChatMessageRepo chatMessageRepo;
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final SimpMessageSendingOperations template;
+    private final ObjectMapper om;
+
+    // TODO: 전반적으로 데이터를 찾지 못했을 때, 예외를 터트려 줄 것
 
     @Override
-    public Mono<ChatRoomDto> createChatRoom(Long userId, ChatRoomDto chatRoomDto) {
+    public Mono<ChatRoom> createChatRoom(Long userId, ChatRoomDto chatRoomDto) {
         ChatRoom chatRoom = ChatRoom.createChatRoom(chatRoomDto.getArticleId(), chatRoomDto.getChatRoomName(), userId);
-        Mono<ChatRoom> monoChatRoom = chatRoomRepo.save(chatRoom);
+        return chatRoomRepo.save(chatRoom);
 
-        return monoChatRoom.map(savedChatRoom -> ChatRoomDto.fromEntity(savedChatRoom));
+    }
+
+    // TODO: 나중에 페이징 처리해 주면 더 좋음
+    @Override
+    public Flux<ChatRoom> getChatRoomList(Long userId) {
+        return chatRoomRepo.findAllByParticipantIdsContains(userId);
     }
 
     @Override
@@ -59,7 +67,7 @@ public class ChatServiceImpl implements ChatService{
 //        Flux<ChatMessage> fluxChatMessage = chatMessageRepo.findAllByCharRoomId(chatRoomId);
 
         Mono<ChatRoom> monoChatRoom = chatRoomRepo.findById(chatRoomId);
-        Flux<ChatMessage> fluxChatMessage = chatMessageRepo.findAllByCharRoomId(chatRoomId);
+        Flux<ChatMessage> fluxChatMessage = chatMessageRepo.findAllByChatRoomId(chatRoomId);
 
         return monoChatRoom.flatMap(cr -> {
             Mono<List<ChatMessage>> messageList = fluxChatMessage.collectList();
@@ -70,6 +78,9 @@ public class ChatServiceImpl implements ChatService{
         });
     }
 
+
+
+    // TODO: 체팅방의 인원 수가 0이면 지워주는 로직을 만들어야함
     @Override
     public Mono<ChatRoom> exitChatRoom(String chatRoomId, Long userId) {
         Mono<ChatRoom> monoChatRoom = chatRoomRepo.findById(chatRoomId);
@@ -93,46 +104,54 @@ public class ChatServiceImpl implements ChatService{
 
     @Override
     public void sendMessage(String type, ChatMessageDto chatMessageDto) {
-        log.info("===== kafka producer 실행 (메세지 보내기) ====");
-        ObjectMapper om = new ObjectMapper();
-        String json = "";
+        log.info("===== kafka producer 실행 (메세지 보내기) : {} =====", chatMessageDto.getContent());
         ChatMessage chatMessage = null;
 
         if(type.equals("START")) {
-            chatMessage = ChatMessage.createChatMassage(chatMessageDto.getCharRoomId(), chatMessageDto.getSenderId(), ChatMessage.Type.START);
+            chatMessage = ChatMessage.createChatMassage(chatMessageDto.getChatRoomId(), chatMessageDto.getSenderId(), ChatMessage.Type.START);
+            // chatMessage.setContent("al");
         }
         if(type.equals("END")) {
-            chatMessage = ChatMessage.createChatMassage(chatMessageDto.getCharRoomId(), chatMessageDto.getSenderId(), ChatMessage.Type.END);
+            chatMessage = ChatMessage.createChatMassage(chatMessageDto.getChatRoomId(), chatMessageDto.getSenderId(), ChatMessage.Type.END);
+            // chatMessage.setContent("al");
         }
         if(type.equals("MSG")) {
-            chatMessage = ChatMessage.createChatMassage(chatMessageDto.getCharRoomId(), chatMessageDto.getContent(), chatMessageDto.getSenderId());
-        }
-        try {
-            json = om.writeValueAsString(chatMessage);
-        } catch (JsonProcessingException e) {
-            log.info("===== [에러] 메세지를 Json으로 변환하는 과정에서 오류 발생 =====");
+            chatMessage = ChatMessage.createChatMassage(chatMessageDto.getChatRoomId(), chatMessageDto.getContent(), chatMessageDto.getSenderId());
         }
 
-        chatMessageRepo.save(chatMessage);
+        log.info("===== kafka 보내기 전 데이터 확인 : {}", chatMessage);
 
-        String topic = SystemString.KAFKA_CHATTING_TOPIC;
-        kafkaTemplate.send(topic, json);
-        log.info("===== [kafka] 메세지 전송 완료 : '"+ chatMessage.getContent() +"' =====");
+        chatMessageRepo.save(chatMessage)
+                .subscribe(savedChatMessage -> {
+                    try {
+                        // 저장된 메시지를 JSON으로 직렬화합니다.
+                        String json = om.writeValueAsString(savedChatMessage);
+                        String topic = SystemString.KAFKA_CHATTING_TOPIC;
+
+                        // JSON을 Kafka로 전송합니다.
+                        kafkaTemplate.send(topic, json);
+                        log.info("===== [kafka] 메시지 전송 완료 : {} =====", savedChatMessage);
+                    } catch (JsonProcessingException e) {
+                        log.error("===== [에러] 메세지를 Json으로 변환하는 과정에서 오류 발생 =====", e);
+                    }
+                }, error -> {
+                    log.error("메시지 저장 중 오류 발생", error);
+                });
     }
 
     @Override
     @KafkaListener(topics = SystemString.KAFKA_CHATTING_TOPIC)
     public void receiveMessage(String message) {
-        log.info("===== kafca consumer 실행 (메세지 받기) =====");
+        log.info("===== kafca consumer 실행 (메세지 받기) : {} =====", message);
         Map<Object, Object> map = new HashMap<>();
-        ObjectMapper om = new ObjectMapper();
         try {
             map = om.readValue(message, new TypeReference<Map<Object, Object>>() {});
         } catch (JsonProcessingException e) {
+            e.printStackTrace();
             log.info("===== [에러] Json을 객체로 파싱하는 과정에서 오류 발생 =====");
         }
 
-        log.info("===== [데이터 확인] : {} =====", map);
+        log.info("===== [데이터 확인] : {} =====", map.get("chatRoomId"));
         template.convertAndSend("/sub/" + map.get("chatRoomId"), map);
     }
 }

@@ -1,5 +1,6 @@
 package com.example.chatservice.web.dto;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -9,16 +10,15 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 public class ChatMessageDto {
-    private String charRoomId;
+
+    private String chatRoomId;
     private String content;
     private Long senderId;
-    private LocalDateTime createdAt;
 
     @Builder
-    private ChatMessageDto(String charRoomId, String content, Long senderId, LocalDateTime createdAt) {
-        this.charRoomId = charRoomId;
+    private ChatMessageDto(String chatRoomId, String content, Long senderId) {
+        this.chatRoomId = chatRoomId;
         this.content = content;
         this.senderId = senderId;
-        this.createdAt = createdAt;
     }
 }
